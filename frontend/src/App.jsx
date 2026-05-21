@@ -1,8 +1,11 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, NavLink } from 'react-router-dom'
-import Inventory from './pages/Inventory'
-import AddItem from './pages/AddItem'
-import RemoveItem from './pages/RemoveItem'
 import './App.css'
+
+const Inventory = lazy(() => import('./pages/Inventory'))
+const AddItem = lazy(() => import('./pages/AddItem'))
+const RemoveItem = lazy(() => import('./pages/RemoveItem'))
+const Logs = lazy(() => import('./pages/Logs'))
 
 export default function App() {
   return (
@@ -12,11 +15,14 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Inventory />} />
-          <Route path="/ajouter" element={<AddItem />} />
-          <Route path="/retirer" element={<RemoveItem />} />
-        </Routes>
+        <Suspense fallback={<p className="loading">Chargement...</p>}>
+          <Routes>
+            <Route path="/" element={<Inventory />} />
+            <Route path="/ajouter" element={<AddItem />} />
+            <Route path="/retirer" element={<RemoveItem />} />
+            <Route path="/historique" element={<Logs />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <nav className="bottom-nav">
@@ -31,6 +37,10 @@ export default function App() {
         <NavLink to="/retirer" className={({ isActive }) => isActive ? 'active' : ''}>
           <span className="nav-icon">➖</span>
           <span>Retirer</span>
+        </NavLink>
+        <NavLink to="/historique" className={({ isActive }) => isActive ? 'active' : ''}>
+          <span className="nav-icon">📋</span>
+          <span>Historique</span>
         </NavLink>
       </nav>
     </div>

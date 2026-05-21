@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addItem, getCategories, lookupBarcode } from '../api'
+import BarcodeScanner from '../components/BarcodeScanner'
 
 const UNITS = ['g', 'kg', 'pièce', 'litre', 'cl', 'portion']
+const FAVORITES_KEY = 'congelo_favorites'
+
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]') } catch { return [] }
+}
+
+function saveFavorite(item) {
+  const favs = getFavorites().filter(f => f.name !== item.name)
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify([item, ...favs].slice(0, 8)))
+}
 
 export default function AddItem() {
   const navigate = useNavigate()
   const [categories, setCategories] = useState([])
+  const [favorites, setFavorites] = useState(getFavorites())
+  const [showScanner, setShowScanner] = useState(false)
   const [form, setForm] = useState({
     name: '',
     quantity: '',
@@ -28,18 +41,29 @@ export default function AddItem() {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  async function handleBarcodeInput(code) {
-    if (!code || code.length < 8) return
+  function applyFavorite(fav) {
+    setForm(f => ({
+      ...f,
+      name: fav.name,
+      unit: fav.unit,
+      category_id: fav.category_id || '',
+      quantity: '',
+    }))
+  }
+
+  async function handleBarcodeDetected(code) {
+    set('barcode', code)
     setScanning(true)
     try {
       const product = await lookupBarcode(code)
       if (product.name) set('name', product.name)
-      set('barcode', code)
-    } catch {
-      // produit inconnu, on garde le code
-    } finally {
-      setScanning(false)
-    }
+    } catch {}
+    setScanning(false)
+  }
+
+  async function handleBarcodeInput(code) {
+    if (!code || code.length < 8) return
+    await handleBarcodeDetected(code)
   }
 
   async function handleSubmit(e) {
@@ -49,25 +73,53 @@ export default function AddItem() {
       return
     }
     setSubmitting(true)
-    await addItem({ ...form, quantity: parseFloat(form.quantity) })
+    const payload = { ...form, quantity: parseFloat(form.quantity) }
+    await addItem(payload)
+    saveFavorite({ name: form.name, unit: form.unit, category_id: form.category_id })
+    setFavorites(getFavorites())
     navigate('/')
   }
 
   return (
     <div className="page">
+      {showScanner && (
+        <BarcodeScanner
+          onDetected={handleBarcodeDetected}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
+      {favorites.length > 0 && (
+        <section className="favorites-section">
+          <p className="category-title">Ajouts rapides</p>
+          <div className="favorites-list">
+            {favorites.map((fav, i) => (
+              <button key={i} className="fav-chip" onClick={() => applyFavorite(fav)}>
+                {fav.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <h2 className="page-title">Ajouter un article</h2>
       <form className="form" onSubmit={handleSubmit}>
 
         <label className="form-label">
           Code-barre (optionnel)
-          <input
-            className="form-input"
-            type="text"
-            placeholder="Scanner ou saisir le code"
-            value={form.barcode}
-            onChange={e => set('barcode', e.target.value)}
-            onBlur={e => handleBarcodeInput(e.target.value)}
-          />
+          <div className="barcode-row">
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Saisir le code..."
+              value={form.barcode}
+              onChange={e => set('barcode', e.target.value)}
+              onBlur={e => handleBarcodeInput(e.target.value)}
+            />
+            <button type="button" className="btn-scan" onClick={() => setShowScanner(true)}>
+              📷
+            </button>
+          </div>
           {scanning && <span className="hint">Recherche du produit...</span>}
         </label>
 
