@@ -6,7 +6,13 @@
       "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
       "Bash(mkdir -p \"/c/Claude/Projets/Congelo/backend/src/routes\" \"/c/Claude/Projets/Congelo/backend/src/db\")",
       "Bash(npm init *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(node src/index.js)",
+      "Bash(echo \"Backend PID: $!\")",
+      "Bash(npm run *)",
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(node -e ' *)"
     ]
   }
 }
