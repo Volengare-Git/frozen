@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(\"/c/Program Files/nodejs/npm\" create vite@latest frontend -- --template react)",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Bash(mkdir -p \"/c/Claude/Projets/Congelo/backend/src/routes\" \"/c/Claude/Projets/Congelo/backend/src/db\")",
+      "Bash(npm init *)",
+      "Bash(npm install *)"
+    ]
+  }
+}

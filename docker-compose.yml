@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=3001
+      - DB_PATH=/app/data/congelo.db
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
