@@ -3,28 +3,36 @@ import { BrowserMultiFormatReader } from '@zxing/browser'
 
 export default function BarcodeScanner({ onDetected, onClose }) {
   const videoRef = useRef(null)
-  const readerRef = useRef(null)
+  const controlsRef = useRef(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let active = true
     const reader = new BrowserMultiFormatReader()
-    readerRef.current = reader
 
-    reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
-      if (result) {
-        onDetected(result.getText())
-        handleClose()
-      }
-      if (err && !(err.message?.includes('No MultiFormat'))) {
-        setError('Impossible d\'accéder à la caméra.')
-      }
-    }).catch(() => setError('Impossible d\'accéder à la caméra.'))
+    reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
+      if (!active || !result) return
+      active = false
+      controlsRef.current?.stop()
+      onDetected(result.getText())
+      onClose()
+    })
+      .then(controls => {
+        controlsRef.current = controls
+        if (!active) controls.stop()
+      })
+      .catch(() => {
+        if (active) setError("Impossible d'accéder à la caméra. Vérifiez les permissions.")
+      })
 
-    return () => handleClose()
+    return () => {
+      active = false
+      controlsRef.current?.stop()
+    }
   }, [])
 
   function handleClose() {
-    try { BrowserMultiFormatReader.releaseAllStreams() } catch {}
+    controlsRef.current?.stop()
     onClose()
   }
 
