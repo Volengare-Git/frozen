@@ -315,3 +315,25 @@ body {
 .log-action { font-size: 12px; font-weight: 600; }
 .log-add { color: #16a34a; }
 .log-remove { color: #dc2626; }
+
+/* Edit button */
+.btn-edit {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.btn-edit:hover { opacity: 1; }
+
+/* Edit modal */
+.edit-modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 75svh;
+}
+
+.btn-danger { background: var(--danger); color: white; }

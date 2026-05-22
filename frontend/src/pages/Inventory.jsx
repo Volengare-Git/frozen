@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getItems } from '../api'
+import { lazy, Suspense } from 'react'
+
+const EditModal = lazy(() => import('../components/EditModal'))
 
 const EXPIRY_DAYS_WARN = 7
 
@@ -26,10 +29,13 @@ export default function Inventory() {
   const [items, setItems] = useState([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [editingItem, setEditingItem] = useState(null)
 
-  useEffect(() => {
+  function load() {
     getItems().then(data => { setItems(data); setLoading(false) })
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   const filtered = items.filter(i =>
     i.name.toLowerCase().includes(search.toLowerCase())
@@ -46,6 +52,16 @@ export default function Inventory() {
 
   return (
     <div className="page">
+      {editingItem && (
+        <Suspense fallback={null}>
+          <EditModal
+            item={editingItem}
+            onClose={() => setEditingItem(null)}
+            onSaved={() => { setEditingItem(null); load() }}
+          />
+        </Suspense>
+      )}
+
       <input
         className="search-input"
         type="search"
@@ -73,6 +89,7 @@ export default function Inventory() {
                 <div className="item-right">
                   <ExpiryBadge expiresAt={item.expires_at} />
                   <span className="item-qty">{item.quantity} {item.unit}</span>
+                  <button className="btn-edit" onClick={() => setEditingItem(item)}>✏️</button>
                 </div>
               </li>
             ))}

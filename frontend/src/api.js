@@ -18,6 +18,13 @@ export const updateItem = (id, data) =>
     body: JSON.stringify(data),
   }).then(r => r.json());
 
+export const editItem = (id, data) =>
+  fetch(`${BASE}/items/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(r => r.json());
+
 export const deleteItem = (id) =>
   fetch(`${BASE}/items/${id}`, { method: 'DELETE' }).then(r => r.json());
 

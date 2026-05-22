@@ -61,6 +61,27 @@ router.patch('/:id', (req, res) => {
   res.json(updated);
 });
 
+router.put('/:id', (req, res) => {
+  const { name, quantity, unit, category_id, frozen_at, expires_at, barcode } = req.body;
+  const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Article introuvable' });
+  if (!name || quantity == null) return res.status(400).json({ error: 'name et quantity sont requis' });
+
+  db.prepare(`
+    UPDATE items SET
+      name = ?, quantity = ?, unit = ?, category_id = ?,
+      frozen_at = ?, expires_at = ?, barcode = ?
+    WHERE id = ?
+  `).run(name, quantity, unit || 'pièce', category_id || null,
+         frozen_at || null, expires_at || null, barcode || null, item.id);
+
+  db.prepare(`INSERT INTO logs (action, item_name, quantity, unit) VALUES ('modification', ?, ?, ?)`)
+    .run(name, quantity, unit || 'pièce');
+
+  const updated = db.prepare('SELECT * FROM items WHERE id = ?').get(item.id);
+  res.json(updated);
+});
+
 router.delete('/:id', (req, res) => {
   const item = db.prepare('SELECT * FROM items WHERE id = ?').get(req.params.id);
   if (!item) return res.status(404).json({ error: 'Article introuvable' });
